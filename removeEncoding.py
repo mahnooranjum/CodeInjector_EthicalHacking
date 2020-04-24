@@ -21,6 +21,7 @@
 import netfilterqueue as nfq
 import scapy.all as sp
 import re
+import os
 
 def modify_load(sp_packet, mod_load):
     sp_packet[sp.Raw].load = mod_load
@@ -35,12 +36,18 @@ def process(packet):
         if sp_packet.haslayer(sp.TCP):
             if sp_packet[sp.TCP].dport == 80:
                 print("[+] HTTP request : ")
-                mod_load = re.sub(r'Accept-Encoding:.*?\\r\\n', "", str(sp_packet[sp.Raw].load))
+                load = sp_packet[sp.Raw].load.decode("unicode-escape")
+                mod_load = re.sub(r'Accept-Encoding:.*', "", load)
+                mod_load = mod_load.replace("\n\n", "\n")
+                mod_load = mod_load.replace("HTTP/1.1", "HTTP/1.0")
+                mod_load = bytes(mod_load, "utf-8")
                 sp_packet = modify_load(sp_packet, mod_load)
+                #print(sp_packet.show())
                 packet.set_payload(bytes(sp_packet))
             if sp_packet[sp.TCP].sport == 80:
                 print("[+] HTTP response")
                 print(sp_packet.show())
+
     packet.accept()
 
 
