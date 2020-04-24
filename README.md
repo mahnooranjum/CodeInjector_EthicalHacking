@@ -16,3 +16,5 @@ Download the repository, run the main program using:
 | output.png  | Injection screenshot | 
 | removeEncoding.py  | Make responses readable | 
 | setup.py  | Run this before injection | 
+## Output
+![program output](output.png)
