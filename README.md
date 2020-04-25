@@ -16,5 +16,6 @@ Download the repository, run the main program using:
 | output.png  | Injection screenshot | 
 | removeEncoding.py  | Make responses readable | 
 | setup.py  | Run this before injection | 
+| injectorhttps.py  | Main program for HTTPS, read the comments before running!| 
 ## Output
 ![program output](output.png)
